@@ -1,9 +1,19 @@
 <script setup>
-import { ref } from "vue"
+import { ref, reactive } from "vue"
 import presupuesto from './components/presupuesto.vue'
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
+import iconoNuevoGasto from "./assets/img/nuevo-gasto.svg"
+import Modal from "./components/Modal.vue"
+const mostrarModal = () => {
+  modal.mostrar = true
+  modal.animar = true
+}
 
-
+// Definimos el estado del modal
+const modal = reactive({
+  mostrar: false,
+  animar: false
+});
 const presupuestoTot = ref(0)
 const definirPresupuesto = (num) => {
   presupuestoTot.value = num
@@ -19,11 +29,19 @@ const definirPresupuesto = (num) => {
     <h1>Planificador de gastos</h1>
     <div class="contenedor-header contenedor sombra">
       <presupuesto v-if="presupuestoTot === 0" @definir-presupuesto="definirPresupuesto" />
-      <ControlPresupuesto v-else />
+      <ControlPresupuesto v-else :presupuestoTot="presupuestoTot" />
 
     </div>
 
   </header>
+  <main v-if="presupuestoTot !== 0">
+    <div @click="mostrarModal" class="crear-gasto">
+      <img :src="iconoNuevoGasto" alt="altText" />
+    </div>
+    <Modal v-if="modal.mostrar" />
+
+  </main>
+
 
 
 
@@ -92,5 +110,16 @@ header h1 {
   background-color: var(--blanco);
   border-radius: 1.2rem;
   padding: 5rem;
+}
+
+.crear-gasto {
+  position: fixed;
+  bottom: 5rem;
+  right: 5rem;
+}
+
+.crear-gasto img {
+  width: 5rem;
+  cursor: pointer;
 }
 </style>
