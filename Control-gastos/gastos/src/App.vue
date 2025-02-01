@@ -6,9 +6,19 @@ import iconoNuevoGasto from "./assets/img/nuevo-gasto.svg"
 import Modal from "./components/Modal.vue"
 const mostrarModal = () => {
   modal.mostrar = true
-  modal.animar = true
+  setTimeout(() => {
+    modal.animar = true; // Luego cambia `mostrar` después de 200ms
+  }, 500);
 }
+const ocultarModal = () => {
+  modal.animar = false;
 
+  setTimeout(() => {
+    modal.mostrar = false;
+  }, 500);
+
+
+}
 // Definimos el estado del modal
 const modal = reactive({
   mostrar: false,
@@ -38,7 +48,7 @@ const definirPresupuesto = (num) => {
     <div @click="mostrarModal" class="crear-gasto">
       <img :src="iconoNuevoGasto" alt="altText" />
     </div>
-    <Modal v-if="modal.mostrar" />
+    <Modal v-if="modal.mostrar" :modal="modal" @ocultar-modal="ocultarModal" />
 
   </main>
 
