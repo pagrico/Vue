@@ -2,6 +2,8 @@
 import cerrarModal from "../assets/img/cerrar.svg"
 import { ref } from "vue"
 import Alerta from "./alerta.vue"
+import { formato } from "../helpers/index.js"
+
 
 const emit = defineEmits(['ocultar-modal', 'update:nombre', 'update:cantidad', 'update:categoria', 'guardar-gasto'])
 const error = ref("");

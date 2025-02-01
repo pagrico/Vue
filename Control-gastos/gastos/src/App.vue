@@ -4,10 +4,12 @@ import presupuesto from './components/presupuesto.vue';
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
 import iconoNuevoGasto from "./assets/img/nuevo-gasto.svg";
 import Modal from "./components/Modal.vue";
-import { generarId } from "./helpers/index.js"
+import { generarId, formato } from "./helpers/index.js"
 
-
+import MODGasto from "./components/Gasto.vue"
 const gastos = ref([])
+
+
 // Estado del modal
 const modal = reactive({
   mostrar: false,
@@ -46,8 +48,21 @@ const gasto = reactive({
 const definirPresupuesto = (num) => {
   presupuestoTot.value = num;
 };
+function datosACero() {
+  gasto.nombre = ''
+  gasto.cantidad = ''
+  gasto.categoria = ''
+  gasto.id = null
+  gasto.fecha = new Date().toLocaleDateString()
+}
 const guardarGasto = () => {
-  console.log('gasto guardado');
+  gasto.id = generarId();
+  gasto.cantidad = formato(gasto.cantidad)
+  const aux = reactive({ ...gasto });  // Hacemos una copia superficial con spread y la convertimos en reactiva
+
+  gastos.value.push(aux);
+  datosACero()
+  ocultarModal()
 
 }
 
@@ -68,6 +83,12 @@ const guardarGasto = () => {
     </div>
     <Modal v-if="modal.mostrar" :modal="modal" @ocultar-modal="ocultarModal" v-model:nombre="gasto.nombre"
       v-model:cantidad="gasto.cantidad" v-model:categoria="gasto.categoria" v-on:guardar-gasto="guardarGasto" />
+
+
+    <div class="listado-gastos contenedor">
+      <h2>{{ gastos.length == 0 ? 'No hay gastos' : 'Gastos:' }}</h2>
+      <MODGasto v-for="gasto in gastos" :gasto />
+    </div>
   </main>
 </template>
 
@@ -145,5 +166,14 @@ header h1 {
 .crear-gasto img {
   width: 5rem;
   cursor: pointer;
+}
+
+.listado-gastos {
+  margin-top: 10rem;
+}
+
+.listado-gastos h2 {
+  font-weight: 900;
+  color: var(--gris-oscuro);
 }
 </style>
