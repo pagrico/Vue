@@ -1,60 +1,74 @@
 <script setup>
-import { ref, reactive } from "vue"
-import presupuesto from './components/presupuesto.vue'
+import { ref, reactive } from "vue";
+import presupuesto from './components/presupuesto.vue';
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
-import iconoNuevoGasto from "./assets/img/nuevo-gasto.svg"
-import Modal from "./components/Modal.vue"
-const mostrarModal = () => {
-  modal.mostrar = true
-  setTimeout(() => {
-    modal.animar = true; // Luego cambia `mostrar` después de 200ms
-  }, 500);
-}
-const ocultarModal = () => {
-  modal.animar = false;
-
-  setTimeout(() => {
-    modal.mostrar = false;
-  }, 500);
+import iconoNuevoGasto from "./assets/img/nuevo-gasto.svg";
+import Modal from "./components/Modal.vue";
+import { generarId } from "./helpers/index.js"
 
 
-}
-// Definimos el estado del modal
+const gastos = ref([])
+// Estado del modal
 const modal = reactive({
   mostrar: false,
   animar: false
 });
-const presupuestoTot = ref(0)
+
+// Mostrar modal
+const mostrarModal = () => {
+  modal.mostrar = true;
+  setTimeout(() => {
+    modal.animar = true;
+  }, 200);
+};
+
+// Ocultar modal
+const ocultarModal = () => {
+  modal.animar = false;
+  setTimeout(() => {
+    modal.mostrar = false;
+  }, 500);
+};
+
+// Presupuesto total
+const presupuestoTot = ref(0);
+
+// Estado de un nuevo gasto
+const gasto = reactive({
+  nombre: '',
+  cantidad: '',
+  categoria: '',
+  id: null,
+  fecha: new Date().toLocaleDateString()
+});
+
+// Definir presupuesto
 const definirPresupuesto = (num) => {
-  presupuestoTot.value = num
+  presupuestoTot.value = num;
+};
+const guardarGasto = () => {
+  console.log('gasto guardado');
 
 }
-
 
 </script>
 
 <template>
-
   <header>
     <h1>Planificador de gastos</h1>
     <div class="contenedor-header contenedor sombra">
       <presupuesto v-if="presupuestoTot === 0" @definir-presupuesto="definirPresupuesto" />
       <ControlPresupuesto v-else :presupuestoTot="presupuestoTot" />
-
     </div>
-
   </header>
-  <main v-if="presupuestoTot !== 0">
+
+  <main v-if="presupuestoTot > 0">
     <div @click="mostrarModal" class="crear-gasto">
-      <img :src="iconoNuevoGasto" alt="altText" />
+      <img :src="iconoNuevoGasto" alt="Nuevo gasto" />
     </div>
-    <Modal v-if="modal.mostrar" :modal="modal" @ocultar-modal="ocultarModal" />
-
+    <Modal v-if="modal.mostrar" :modal="modal" @ocultar-modal="ocultarModal" v-model:nombre="gasto.nombre"
+      v-model:cantidad="gasto.cantidad" v-model:categoria="gasto.categoria" v-on:guardar-gasto="guardarGasto" />
   </main>
-
-
-
-
 </template>
 
 <style>
