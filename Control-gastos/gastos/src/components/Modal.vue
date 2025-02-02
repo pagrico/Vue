@@ -2,7 +2,6 @@
 import cerrarModal from "../assets/img/cerrar.svg"
 import { ref } from "vue"
 import Alerta from "./alerta.vue"
-import { formato } from "../helpers/index.js"
 
 
 const emit = defineEmits(['ocultar-modal', 'update:nombre', 'update:cantidad', 'update:categoria', 'guardar-gasto'])
@@ -24,10 +23,23 @@ const props = defineProps({
     categoria: {
         type: String,
         required: true
+    },
+    disponible: {
+        type: Number,
+        required: true
+    },
+    total: {
+        type: Number,
+        required: true
+    },
+    id: { // Agregar el id a las props
+        type: [String, Number, null],
+        required: true
     }
+
 });
 const agregarGasto = () => {
-    const { nombre, cantidad, categoria } = props
+    const { nombre, cantidad, categoria, disponible, id, total } = props;
 
     if ([categoria, cantidad, nombre].includes("")) {
         error.value = "Todos los campos son obligatorios";
@@ -36,6 +48,7 @@ const agregarGasto = () => {
         }, 3000);
         return;
     }
+
     if (cantidad <= 0) {
         error.value = "Cantidad no válida";
         setTimeout(() => {
@@ -44,9 +57,53 @@ const agregarGasto = () => {
         return;
     }
 
-    emit("guardar-gasto")
+    // Verifica si estamos editando un gasto (id no es null)
+    if (id !== null) {
+        const cantidadAntigua = props.modal.gasto.cantidad;
+        const disponibleRestante = disponible + cantidadAntigua;
 
-}
+        // Validación: La nueva cantidad no puede ser mayor al disponible restante y al total
+        if (cantidad > disponibleRestante) {
+            error.value = "Has superado el dinero disponible";
+            setTimeout(() => {
+                error.value = "";
+            }, 3000);
+            return;
+        }
+
+        // Validación: La nueva cantidad no puede superar el total
+        if (cantidad > total) {
+            error.value = "Has superado el presupuesto total";
+            setTimeout(() => {
+                error.value = "";
+            }, 3000);
+            return;
+        }
+
+    } else {
+        // Validación: La nueva cantidad no puede ser mayor al disponible
+        if (cantidad > disponible) {
+            error.value = "Has superado el dinero disponible";
+            setTimeout(() => {
+                error.value = "";
+            }, 3000);
+            return;
+        }
+
+        // Validación: La nueva cantidad no puede ser mayor al total
+        if (cantidad > total) {
+            error.value = "Has superado el presupuesto total";
+            setTimeout(() => {
+                error.value = "";
+            }, 3000);
+            return;
+        }
+    }
+
+    emit("guardar-gasto", cantidad);
+};
+
+
 </script>
 
 
@@ -75,7 +132,7 @@ const agregarGasto = () => {
                     <label for="categoria">Categoría:</label>
                     <select :value="categoria" id="categoria" @input="emit('update:categoria', $event.target.value)">
                         <option value="">-- Selecciona --</option>
-                        <option value=" ahorro">Ahorro</option>
+                        <option value="ahorro">Ahorro</option>
                         <option value="comida">Cesta compra</option>
                         <option value="casa">Casa</option>
                         <option value="ocio">Ocio</option>

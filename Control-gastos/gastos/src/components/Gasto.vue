@@ -6,6 +6,8 @@ import IconoComida from "../assets/img/icono_comida.svg"
 import IconoCasa from "../assets/img/icono_casa.svg"
 import IconoAhorro from "../assets/img/icono_ahorro.svg"
 import IconoGastos from "../assets/img/icono_gastos.svg"
+import { formato } from "../helpers/index.js"
+
 
 const diccionarioIconos = {
     ahorro: IconoAhorro,
@@ -18,6 +20,7 @@ const diccionarioIconos = {
 };
 
 
+defineEmits(["seleccionar-gasto"]);
 
 
 
@@ -33,12 +36,12 @@ defineProps({
             <img :src="diccionarioIconos[gasto.categoria]" alt="Icono gasto" class="icono" />
             <div class="detalles">
                 <p class="categoría">{{ gasto.categoria }}</p>
-                <p class="nombre">{{ gasto.nombre }}</p>
+                <p @click="$emit('seleccionar-gasto', gasto.id)" class="nombre">{{ gasto.nombre }}</p>
                 <p class="fecha">
                     Fecha: <span>{{ gasto.fecha }}</span>
                 </p>
             </div>
-            <p class="cantidad">{{ gasto.cantidad }}</p>
+            <p class="cantidad">{{ formato(gasto.cantidad) }}</p>
         </div>
     </div>
 </template>

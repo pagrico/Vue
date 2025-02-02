@@ -13,7 +13,8 @@ const gastos = ref([])
 // Estado del modal
 const modal = reactive({
   mostrar: false,
-  animar: false
+  animar: false,
+  gasto: {}
 });
 
 // Mostrar modal
@@ -30,10 +31,13 @@ const ocultarModal = () => {
   setTimeout(() => {
     modal.mostrar = false;
   }, 500);
+  datosACero()
 };
 
 // Presupuesto total
 const presupuestoTot = ref(0);
+const disponible = ref(0)
+const gastado = ref(0)
 
 // Estado de un nuevo gasto
 const gasto = reactive({
@@ -44,9 +48,17 @@ const gasto = reactive({
   fecha: new Date().toLocaleDateString()
 });
 
+const seleccionarGasto = (id) => {
+  const gastoSeleccionado = gastos.value.find(g => g.id === id);
+  Object.assign(gasto, gastoSeleccionado);  // Copiar valores al estado reactivo
+  mostrarModal();
+};
 // Definir presupuesto
 const definirPresupuesto = (num) => {
   presupuestoTot.value = num;
+  disponible.value = num;
+
+
 };
 function datosACero() {
   gasto.nombre = ''
@@ -55,16 +67,32 @@ function datosACero() {
   gasto.id = null
   gasto.fecha = new Date().toLocaleDateString()
 }
-const guardarGasto = () => {
-  gasto.id = generarId();
-  gasto.cantidad = formato(gasto.cantidad)
-  const aux = reactive({ ...gasto });  // Hacemos una copia superficial con spread y la convertimos en reactiva
+const guardarGasto = (cantidad) => {
+  if (gasto.id) {
+    const index = gastos.value.findIndex(g => g.id === gasto.id);
+    if (index !== -1) {
 
-  gastos.value.push(aux);
-  datosACero()
-  ocultarModal()
+      disponible.value += gastos.value[index].cantidad - cantidad;
+      gastado.value -= gastos.value[index].cantidad - cantidad;
 
-}
+      gastos.value[index] = { ...gasto };
+    }
+  } else {
+
+    gasto.id = generarId();
+    gasto.cantidad = cantidad;
+    disponible.value -= cantidad;
+    gastado.value += cantidad;
+
+    const aux = reactive({ ...gasto });
+    gastos.value.push(aux);
+  }
+
+  datosACero();
+  ocultarModal();
+};
+
+
 
 </script>
 
@@ -73,7 +101,8 @@ const guardarGasto = () => {
     <h1>Planificador de gastos</h1>
     <div class="contenedor-header contenedor sombra">
       <presupuesto v-if="presupuestoTot === 0" @definir-presupuesto="definirPresupuesto" />
-      <ControlPresupuesto v-else :presupuestoTot="presupuestoTot" />
+      <ControlPresupuesto v-else :presupuestoTot="presupuestoTot" v-model:disponible="disponible"
+        v-model:gastado="gastado" />
     </div>
   </header>
 
@@ -82,12 +111,14 @@ const guardarGasto = () => {
       <img :src="iconoNuevoGasto" alt="Nuevo gasto" />
     </div>
     <Modal v-if="modal.mostrar" :modal="modal" @ocultar-modal="ocultarModal" v-model:nombre="gasto.nombre"
-      v-model:cantidad="gasto.cantidad" v-model:categoria="gasto.categoria" v-on:guardar-gasto="guardarGasto" />
+      v-model:cantidad="gasto.cantidad" v-model:categoria="gasto.categoria" v-on:guardar-gasto="guardarGasto"
+      v-model:disponible="disponible" :id="gasto.id" :total="presupuestoTot" />
 
 
-    <div class="listado-gastos contenedor">
+    <div class=" listado-gastos contenedor">
       <h2>{{ gastos.length == 0 ? 'No hay gastos' : 'Gastos:' }}</h2>
-      <MODGasto v-for="gasto in gastos" :gasto />
+      <MODGasto v-for="gasto in gastos" :key="gasto.id" :gasto="gasto" @seleccionar-gasto="seleccionarGasto" />
+
     </div>
   </main>
 </template>
