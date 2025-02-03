@@ -1,15 +1,26 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import presupuesto from './components/presupuesto.vue';
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
 import iconoNuevoGasto from "./assets/img/nuevo-gasto.svg";
 import Modal from "./components/Modal.vue";
 import { generarId, formato } from "./helpers/index.js"
-
+import Filtro from "./components/Filtro.vue"
 import MODGasto from "./components/Gasto.vue"
+
+
+
+const gastosFiltrados = computed(() => {
+  if (!filtro.value) {
+    // Si no hay filtro, devuelve todos los gastos
+    return gastos.value;
+  }
+  // Filtra los gastos según la categoría seleccionada
+  return gastos.value.filter((gasto) => gasto.categoria === filtro.value);
+});
 const gastos = ref([])
 
-
+const filtro = ref("")
 // Estado del modal
 const modal = reactive({
   mostrar: false,
@@ -88,12 +99,60 @@ const guardarGasto = (cantidad) => {
     gastos.value.push(aux);
   }
 
+
   datosACero();
   ocultarModal();
 };
 
+const eliminarGasto = (id) => {
+  const gastoEliminado = gastos.value.find((gasto) => gasto.id === id);
+
+  if (gastoEliminado) {
+    // Actualizar presupuesto disponible y gastado
+    disponible.value += gastoEliminado.cantidad;
+    gastado.value -= gastoEliminado.cantidad;
+
+    // Eliminar el gasto de la lista
+    gastos.value = gastos.value.filter((gasto) => gasto.id !== id);
+  }
+
+  ocultarModal(); // Cierra el modal después de eliminar
+};
 
 
+onMounted(() => {
+  const presupuestoLocal = localStorage.getItem("presupuesto");
+  const gastosLocal = localStorage.getItem("gastos");
+
+  if (presupuestoLocal) {
+    presupuestoTot.value = parseInt(presupuestoLocal);
+    disponible.value = parseInt(presupuestoLocal);
+  }
+
+  if (gastosLocal) {
+    gastos.value = JSON.parse(gastosLocal);
+    gastos.value.forEach((g) => {
+      gastado.value += g.cantidad; // Recalcular el monto gastado
+    });
+    disponible.value -= gastado.value; // Ajustar el monto disponible
+  }
+});
+
+// Guardar presupuesto y gastos en localStorage
+watch(presupuestoTot, (nuevoPresupuesto) => {
+  localStorage.setItem("presupuesto", nuevoPresupuesto.toString());
+});
+
+watch(gastos, (nuevosGastos) => {
+  localStorage.setItem("gastos", JSON.stringify(nuevosGastos));
+}, { deep: true });
+
+const restart = () => {
+  presupuestoTot.value = 0
+  disponible.value = 0
+  gastado.value = 0
+  gastos.value = []
+}
 </script>
 
 <template>
@@ -102,25 +161,27 @@ const guardarGasto = (cantidad) => {
     <div class="contenedor-header contenedor sombra">
       <presupuesto v-if="presupuestoTot === 0" @definir-presupuesto="definirPresupuesto" />
       <ControlPresupuesto v-else :presupuestoTot="presupuestoTot" v-model:disponible="disponible"
-        v-model:gastado="gastado" />
+        v-model:gastado="gastado" @reset-app="restart" />
     </div>
   </header>
 
   <main v-if="presupuestoTot > 0">
+    <Filtro v-model:filtro="filtro" />
     <div @click="mostrarModal" class="crear-gasto">
       <img :src="iconoNuevoGasto" alt="Nuevo gasto" />
     </div>
     <Modal v-if="modal.mostrar" :modal="modal" @ocultar-modal="ocultarModal" v-model:nombre="gasto.nombre"
       v-model:cantidad="gasto.cantidad" v-model:categoria="gasto.categoria" v-on:guardar-gasto="guardarGasto"
-      v-model:disponible="disponible" :id="gasto.id" :total="presupuestoTot" />
+      v-model:disponible="disponible" :id="gasto.id" :total="presupuestoTot" @eliminar-gasto="eliminarGasto" />
 
 
     <div class=" listado-gastos contenedor">
       <h2>{{ gastos.length == 0 ? 'No hay gastos' : 'Gastos:' }}</h2>
-      <MODGasto v-for="gasto in gastos" :key="gasto.id" :gasto="gasto" @seleccionar-gasto="seleccionarGasto" />
+      <MODGasto v-for="gasto in gastosFiltrados" :key="gasto.id" :gasto="gasto" @seleccionar-gasto="seleccionarGasto" />
 
     </div>
   </main>
+
 </template>
 
 <style>

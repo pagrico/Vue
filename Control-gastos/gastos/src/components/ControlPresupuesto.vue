@@ -6,7 +6,7 @@ import { formato } from "../helpers/index.js"
 const porcentaje = () => {
     return parseInt((prop.disponible / prop.presupuestoTot) * 100)
 };
-
+defineEmits(['reset-app'])
 const prop = defineProps({
     presupuestoTot: {
         type: Number,
@@ -37,7 +37,9 @@ const prop = defineProps({
                 fill-color="#3b82f6" empty-color="#e1e1e1" />
         </div>
         <div class="contenedor-presupuesto">
-            <button type="button" class="reset-app">Reseteo App</button>
+            <button type="button" class="reset-app" @click="$emit('reset-app')">
+                Resetear App
+            </button>
             <p><span>Presupuesto: </span> {{ formato(presupuestoTot) }}</p>
             <p><span>Disponible: </span>{{ formato(disponible) }}</p>
             <p><span>Gastado: </span>{{ formato(gastado) }}</p>

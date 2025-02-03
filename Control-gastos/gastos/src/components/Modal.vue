@@ -4,7 +4,7 @@ import { ref } from "vue"
 import Alerta from "./alerta.vue"
 
 
-const emit = defineEmits(['ocultar-modal', 'update:nombre', 'update:cantidad', 'update:categoria', 'guardar-gasto'])
+const emit = defineEmits(['ocultar-modal', 'update:nombre', 'update:cantidad', 'update:categoria', 'guardar-gasto', 'eliminar-gasto'])
 const error = ref("");
 const props = defineProps({
     modal: {
@@ -103,6 +103,9 @@ const agregarGasto = () => {
     emit("guardar-gasto", cantidad);
 };
 
+const eliminarGasto = () => {
+    emit("eliminar-gasto", props.id); // Emitimos el id del gasto a eliminar
+};
 
 </script>
 
@@ -141,7 +144,14 @@ const agregarGasto = () => {
                         <option value="gastos">Gastos Varios</option>
                     </select>
                 </div>
-                <input type="submit" value="Añadir Gasto">
+                <input type="submit" :value="id ? 'Guardar Cambios' : 'Agregar Gasto'" />
+                <button v-if="id !== null" type="button" class="btn-eliminar" @click="eliminarGasto">
+                    Eliminar Gasto
+                </button>
+
+
+
+
 
             </form>
         </div>
@@ -151,15 +161,25 @@ const agregarGasto = () => {
 
 
 
-<style>
+<style scoped>
 .modal {
-    position: absolute;
-    background-color: rgb(0 0 0 / 0.9);
+
+    /* Cambiado a fixed para que el modal permanezca en la pantalla al hacer scroll */
+    background-color: rgba(0, 0, 0, 0.9);
+    /* Fondo oscuro con transparencia */
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100vw;
+    /* Ancho completo de la ventana */
+    height: 100vh;
+    /* Altura completa de la ventana */
+    display: flex;
+    /* Centrar el contenido del modal */
+    align-items: center;
+    justify-content: center;
+    /* Asegura que el modal esté encima de otros elementos */
 }
+
 
 .cerrar-modal {
     position: absolute;
@@ -224,5 +244,18 @@ const agregarGasto = () => {
 
 .contenedor-formulario.cerrar {
     opacity: 0;
+}
+
+.btn-eliminar {
+    border-radius: 1rem;
+    border: none;
+    padding: 1rem;
+    width: 100%;
+    background-color: #ef4444;
+    font-weight: 700;
+    font-size: 2.2rem;
+    color: var(--blanco);
+    margin-top: 1rem;
+    cursor: pointer;
 }
 </style>
